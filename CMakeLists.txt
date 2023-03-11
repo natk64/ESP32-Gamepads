@@ -1,4 +1,4 @@
 idf_component_register(
-        SRC_DIRS "src" "src/internal"
+        SRC_DIRS "src"
         INCLUDE_DIRS "src"
-        REQUIRES driver)
+        REQUIRES driver ESP32-N64-RMT)

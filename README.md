@@ -10,6 +10,10 @@ This library allows the ESP32 to interface with many retro gamepads
 - Gamecube
 - Genesis/Mega drive
 
+## Installation
+
+Clone [ESP32-N64-RMT](https://github.com/NicoKleinschmidt/ESP32-N64-RMT) and this Repo into the components directory of your ESP-IDF project
+
 ## Basic Usage
 
 ```cpp

@@ -7,7 +7,7 @@
 GamepadN64::GamepadN64(uint8_t pinData)
 {
     _data = static_cast<gpio_num_t>(pinData);
-    _interface = new N64Interface(_data, RMT_MAX_RX_BYTES);
+    _interface = new N64CommandInterface(_data, RMT_MAX_RX_BYTES);
 }
 
 GamepadN64::~GamepadN64() 

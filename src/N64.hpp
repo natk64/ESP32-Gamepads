@@ -2,7 +2,7 @@
 
 #include "stdint.h"
 #include "driver/gpio.h"
-#include "internal/N64Interface.hpp"
+#include "N64CommandInterface.hpp"
 
 class GamepadN64
 {
@@ -10,7 +10,7 @@ private:
     uint8_t _report[4];
     gpio_num_t _data;
 
-    N64Interface *_interface;   
+    N64CommandInterface *_interface;   
 
 public:
     GamepadN64(uint8_t pinData);
