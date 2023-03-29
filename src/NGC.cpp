@@ -56,10 +56,6 @@ bool GamepadNGC::z()             { return _report[1] & (1 << 4); }
 bool GamepadNGC::r_stop()        { return _report[1] & (1 << 5); }
 bool GamepadNGC::l_stop()        { return _report[1] & (1 << 6); }
 
-unsigned char reverse(unsigned char b) {
-   return b;
-}
-
 // TODO: The stick values need to be relative to the origin obtained by the 0x41 (Probe origin) command.
 int8_t GamepadNGC::stick_x() 
 { 
@@ -89,12 +85,5 @@ int8_t GamepadNGC::c_stick_y()
     return signedValue;
 }
 
-uint8_t GamepadNGC::l()
-{
-    return reverse(_report[6]);
-}
-
-uint8_t GamepadNGC::r()
-{
-    return reverse(_report[7]);
-}
+uint8_t GamepadNGC::l() { return _report[6]; }
+uint8_t GamepadNGC::r() { return _report[7]; }
