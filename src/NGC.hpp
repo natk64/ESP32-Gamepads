@@ -10,6 +10,14 @@ private:
     uint8_t _report[8];
     gpio_num_t _data;
 
+    uint8_t _stick_origin_x;
+    uint8_t _stick_origin_y;
+    uint8_t _c_stick_origin_x;
+    uint8_t _c_stick_origin_y;
+    uint8_t _rumble;
+
+    bool _connected;
+
     N64CommandInterface *_interface;   
 
 public:
@@ -31,6 +39,11 @@ public:
     bool right();
     bool l_stop();
     bool r_stop();
+    
+    uint8_t rumble();
+    void setRumble(uint8_t value);
+    bool reset();
+    bool calibrate();
     
     int8_t stick_x();
     int8_t stick_y();

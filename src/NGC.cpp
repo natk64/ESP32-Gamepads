@@ -8,6 +8,12 @@ GamepadNGC::GamepadNGC(uint8_t pinData)
 {
     _data = static_cast<gpio_num_t>(pinData);
     _interface = new N64CommandInterface(_data, RMT_MAX_RX_BYTES);
+    _stick_origin_x = 0;
+    _stick_origin_y = 0;
+    _c_stick_origin_x = 0;
+    _c_stick_origin_y = 0;
+    _rumble = 0;
+    _connected = false;
 }
 
 GamepadNGC::~GamepadNGC() 
@@ -27,15 +33,36 @@ bool GamepadNGC::initialize()
 
 bool GamepadNGC::update()
 {
-    uint8_t command[] = { 0x40, 0x03, 0x02 };
-    size_t bytesReceived = _interface->send_command(command, sizeof(command), _report, sizeof(_report));
-
-    if(bytesReceived != sizeof(_report))
+    if(!_connected)
     {
         uint8_t probe[] = { 0x00 };
-        uint8_t recBuf[1];
+        uint8_t recBuf[3];
+        size_t bytesReceived = _interface->send_command(probe, sizeof(probe), recBuf, sizeof(recBuf));
 
-        _interface->send_command(probe, sizeof(probe), recBuf, sizeof(recBuf));
+        if(bytesReceived != 3) {
+            return false;
+        }
+    }
+    
+    uint8_t origin[] = { 0x41 };
+    uint8_t recBuf[10];
+    size_t bytesReceived = _interface->send_command(origin, sizeof(origin), recBuf, sizeof(recBuf));
+    if(bytesReceived != sizeof(recBuf)) {
+        _connected = false;
+        return false;
+    }
+
+    _connected = true;
+    _stick_origin_x = recBuf[2];
+    _stick_origin_y = recBuf[3];
+    _c_stick_origin_x = recBuf[4];
+    _c_stick_origin_y = recBuf[5];
+
+    uint8_t poll[] = { 0x40, 0x03, _rumble != 0 };
+    bytesReceived = _interface->send_command(poll, sizeof(poll), _report, sizeof(_report));
+
+    if(bytesReceived != sizeof(_report)) {
+        _connected = false;
         return false;
     }
 
@@ -56,33 +83,67 @@ bool GamepadNGC::z()             { return _report[1] & (1 << 4); }
 bool GamepadNGC::r_stop()        { return _report[1] & (1 << 5); }
 bool GamepadNGC::l_stop()        { return _report[1] & (1 << 6); }
 
-// TODO: The stick values need to be relative to the origin obtained by the 0x41 (Probe origin) command.
+uint8_t GamepadNGC::rumble() { return _rumble; }
+void GamepadNGC::setRumble(uint8_t value) { _rumble = value; }
+
+bool GamepadNGC::reset()
+{
+    uint8_t reset[] = { 0xFF };
+    uint8_t recBuf[3];
+    size_t bytesReceived = _interface->send_command(reset, sizeof(reset), recBuf, sizeof(recBuf));
+    return bytesReceived == sizeof(recBuf);
+}
+
+bool GamepadNGC::calibrate()
+{
+    uint8_t calibrate[] = { 0x42 };
+    uint8_t recBuf[10];
+    size_t bytesReceived = _interface->send_command(calibrate, sizeof(calibrate), recBuf, sizeof(recBuf));
+    return bytesReceived == sizeof(recBuf);
+}
+
 int8_t GamepadNGC::stick_x() 
-{ 
-    int8_t signedValue;
-    memcpy(&signedValue, &_report[2], sizeof(uint8_t));
-    return signedValue - 127;
+{
+    uint8_t pos = _report[2];
+    int16_t diff = pos - _stick_origin_x;
+    if(diff < -128)
+        return -128;
+    if(diff > 127)
+        return 127;
+    return diff;
 }
 
 int8_t GamepadNGC::stick_y() 
-{ 
-    int8_t signedValue;
-    memcpy(&signedValue, &_report[3], sizeof(uint8_t));
-    return signedValue - 127; 
+{
+    uint8_t pos = _report[3];
+    int16_t diff = pos - _stick_origin_y;
+    if(diff < -128)
+        return -128;
+    if(diff > 127)
+        return 127;
+    return diff;
 }
 
 int8_t GamepadNGC::c_stick_x()
 {
-    int8_t signedValue;
-    memcpy(&signedValue, &_report[4], sizeof(uint8_t));
-    return signedValue - 127;
+    uint8_t pos = _report[4];
+    int16_t diff = pos - _c_stick_origin_x;
+    if(diff < -128)
+        return -128;
+    if(diff > 127)
+        return 127;
+    return diff;
 }
 
 int8_t GamepadNGC::c_stick_y()
 {
-    int8_t signedValue;
-    memcpy(&signedValue, &_report[5], sizeof(uint8_t));
-    return signedValue;
+    uint8_t pos = _report[5];
+    int16_t diff = pos - _c_stick_origin_y;
+    if(diff < -128)
+        return -128;
+    if(diff > 127)
+        return 127;
+    return diff;
 }
 
 uint8_t GamepadNGC::l() { return _report[6]; }
