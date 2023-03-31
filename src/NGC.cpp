@@ -36,30 +36,29 @@ bool GamepadNGC::update()
     if(!_connected)
     {
         uint8_t probe[] = { 0x00 };
-        uint8_t recBuf[3];
+        uint8_t recBuf[10];
         size_t bytesReceived = _interface->send_command(probe, sizeof(probe), recBuf, sizeof(recBuf));
 
         if(bytesReceived != 3) {
             return false;
         }
-    }
-    
-    uint8_t origin[] = { 0x41 };
-    uint8_t recBuf[10];
-    size_t bytesReceived = _interface->send_command(origin, sizeof(origin), recBuf, sizeof(recBuf));
-    if(bytesReceived != sizeof(recBuf)) {
-        _connected = false;
-        return false;
+
+        uint8_t origin[] = { 0x41 };
+        bytesReceived = _interface->send_command(origin, sizeof(origin), recBuf, sizeof(recBuf));
+        if(bytesReceived != sizeof(recBuf)) {
+            return false;
+        }
+
+        _connected = true;
+        _stick_origin_x = recBuf[2];
+        _stick_origin_y = recBuf[3];
+        _c_stick_origin_x = recBuf[4];
+        _c_stick_origin_y = recBuf[5];
     }
 
-    _connected = true;
-    _stick_origin_x = recBuf[2];
-    _stick_origin_y = recBuf[3];
-    _c_stick_origin_x = recBuf[4];
-    _c_stick_origin_y = recBuf[5];
 
     uint8_t poll[] = { 0x40, 0x03, _rumble != 0 };
-    bytesReceived = _interface->send_command(poll, sizeof(poll), _report, sizeof(_report));
+    size_t bytesReceived = _interface->send_command(poll, sizeof(poll), _report, sizeof(_report));
 
     if(bytesReceived != sizeof(_report)) {
         _connected = false;
