@@ -1,6 +1,9 @@
 #include "SNES.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <esp_log.h>
+
+const static char *TAG = "gamepad_snes";
 
 GamepadSNES::GamepadSNES(uint8_t pinData, uint8_t pinLatch, uint8_t pinClock)
 {
@@ -14,9 +17,13 @@ GamepadSNES::~GamepadSNES() { }
 
 void GamepadSNES::initialize()
 {
+    gpio_reset_pin(_data);
+    gpio_reset_pin(_latch);
+    gpio_reset_pin(_clock);
     gpio_set_direction(_data, gpio_mode_t::GPIO_MODE_INPUT);
     gpio_set_direction(_latch, gpio_mode_t::GPIO_MODE_OUTPUT);
     gpio_set_direction(_clock, gpio_mode_t::GPIO_MODE_OUTPUT);
+    ESP_LOGD(TAG, "Initialized: data: %d, latch: %d, clock: %d", _data, _latch, _clock);
 }
 
 bool GamepadSNES::update()

@@ -1,6 +1,9 @@
 #include "Genesis.hpp"
 #include "Genesis.hpp"
 #include "freertos/FreeRTOS.h"
+#include <esp_log.h>
+
+const static char *TAG = "gamepad_genesis";
 
 GamepadGenesis::GamepadGenesis(uint8_t pinSelect, uint8_t pinData0, uint8_t pinData1, uint8_t pinData2, uint8_t pinData3, uint8_t pinData4, uint8_t pinData5)
 {
@@ -17,6 +20,14 @@ GamepadGenesis::~GamepadGenesis() { }
 
 void GamepadGenesis::initialize()
 {
+    gpio_reset_pin(_select);
+    gpio_reset_pin(_data0);
+    gpio_reset_pin(_data1);
+    gpio_reset_pin(_data2);
+    gpio_reset_pin(_data3);
+    gpio_reset_pin(_data4);
+    gpio_reset_pin(_data5);
+
     gpio_set_direction(_select, gpio_mode_t::GPIO_MODE_OUTPUT);
     gpio_set_direction(_data0, gpio_mode_t::GPIO_MODE_INPUT);
     gpio_set_direction(_data1, gpio_mode_t::GPIO_MODE_INPUT);
@@ -33,6 +44,8 @@ void GamepadGenesis::initialize()
     gpio_set_pull_mode(_data5, gpio_pull_mode_t::GPIO_PULLUP_ONLY);
 
     gpio_set_level(_select, 1); // Idle HIGH
+
+    ESP_LOGD(TAG, "Initialized: select: %d, 0: %d, 1: %d, 2: %d, 3: %d, 4: %d, 5: %d", _select, _data0, _data1, _data2, _data3, _data4, _data5);
 }
 
 bool GamepadGenesis::update()
